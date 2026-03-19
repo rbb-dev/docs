@@ -110,6 +110,90 @@ For basic functionality without any server-side audio processing:
 When the admin leaves `AUDIO_TTS_ENGINE` as an empty string (the default), no backend TTS service is available. All TTS is handled client-side. Similarly, if users select "Web API" for STT in their user settings, the backend's local Whisper is not used.
 :::
 
+## Realtime Voice Troubleshooting
+
+Realtime Voice is a separate live call path built around OpenAI Realtime and WebRTC. It has its own startup requirements and failure modes.
+
+### Realtime Voice settings do not appear
+
+The **Realtime Voice** section in **User Settings > Audio** only appears when the admin has enabled realtime in **Admin Settings > Audio > Realtime API** and configured a realtime API key.
+
+### No realtime models appear
+
+If **Realtime API** is enabled but no realtime models show up, check:
+
+- the realtime **API Base URL**
+- the realtime **API Key**
+- whether **Model IDs** is acting as an unintended whitelist
+- whether the configured realtime provider exposes model IDs through `${AUDIO_RT_API_BASE_URL}/models`
+
+If the provider is OpenAI-compatible but does not list realtime models through `/models`, populate **Model IDs** manually instead of relying on auto-detection.
+
+### The voice button opens a call, but the mic stays muted
+
+This usually means the call is ready, but **Auto-unmute microphone when call is ready** is turned off in user settings.
+
+Expected behavior:
+
+- the overlay can already be connected
+- the assistant may still engage
+- the footer shows `Microphone muted` until the user unmutes manually
+
+### The provider rejects the selected voice
+
+Realtime surfaces raw provider validation errors when possible. If startup fails with a voice-related error:
+
+- confirm the selected realtime model supports that voice
+- confirm the current provider/model family matches the saved voice
+
+Some saved voices remain visible in settings even if the current model no longer supports them, so a visible saved value is not always a guarantee that negotiation will succeed.
+
+### Typing on a realtime model did not feel like normal text chat
+
+That is expected. Sending a typed message on a realtime-capable model can auto-open the realtime overlay and route the turn through the live realtime path rather than the standard non-realtime completion flow.
+
+### I only saw `... Transcribing` and then the turn disappeared
+
+Placeholder-only turns may be removed when no usable transcript is produced. This most often happens on empty or noise-only input.
+
+### The assistant seemed silent while tools were running
+
+During tool execution, Realtime Voice keeps the overlay in an explicit working state and shows tool cards in chat. The processing cue is intentionally subtle and browser/audio-state dependent, so rely on the overlay state and tool cards as the primary indicators.
+
+### Tool calls fail during realtime
+
+Realtime now handles tool failures as structured failures instead of crashing the session flow. If a tool still fails, check:
+
+- upstream credentials
+- tool server auth
+- provider-side access restrictions
+
+### Context felt wrong at the start of the call
+
+Realtime continuity is built from the current chat branch. Behavior depends on:
+
+- whether conversation context is enabled
+- whether older history is summarized
+- which branch is currently selected
+- whether the **Unanswered Last User Turn** policy is set to `discard` or `replay`
+
+### The session ended by itself
+
+If a realtime call closes by itself after inactivity, it ended due to the realtime **Session Idle Timeout** setting. That timeout is based on user inactivity, not just silence from the assistant.
+
+The current overlay closes automatically on idle timeout rather than keeping a persistent `Session timed out` status label on screen.
+
+### Tapping interrupt repeatedly used to break the session
+
+Realtime interruption is response-scoped now:
+
+- tapping while the assistant is speaking stops local playback immediately
+- the overlay can briefly show `Interrupting...`
+- only one provider cancel is sent for the active response
+- extra taps during that same interruption are ignored safely
+
+If interruption still behaves badly, capture the exact provider error text shown under `Connection failed` and inspect the realtime sideband logs.
+
 ## Microphone Access Issues
 
 ### Understanding Secure Contexts 🔒

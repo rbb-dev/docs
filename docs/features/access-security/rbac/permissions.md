@@ -149,3 +149,17 @@ While the UI is the recommended way to manage permissions, initial defaults can 
 *   `USER_PERMISSIONS_CHAT_FILE_UPLOAD=True`
 
 See the [Environment Configuration](/reference/env-configuration) guide for a complete list of valid variables.
+
+## Realtime Voice Notes
+
+- **Audio Call** (`chat.call`) gates access to starting live voice sessions, including Realtime Voice when a realtime-capable model is selected.
+- **System Prompt** (`chat.system_prompt`) also matters for realtime because custom system-prompt overrides during realtime negotiation follow the same permission rule as normal chat.
+- Realtime user settings can also be restricted through dedicated realtime permission flags:
+  - `USER_PERMISSIONS_REALTIME_SETTINGS_VOICE`
+  - `USER_PERMISSIONS_REALTIME_SETTINGS_VAD`
+  - `USER_PERMISSIONS_REALTIME_SETTINGS_NOISE_REDUCTION`
+  - `USER_PERMISSIONS_REALTIME_SETTINGS_MAX_TOKENS`
+  - `USER_PERMISSIONS_REALTIME_SETTINGS_SPEED`
+  - `USER_PERMISSIONS_REALTIME_SETTINGS_CONTEXT`
+
+These flags describe the realtime permission model, but not every permission currently maps to a visible user control in the Realtime Voice settings UI. The current user-facing controls focus on voice, auto-unmute, speed, VAD, noise reduction, and related turn-detection behavior.

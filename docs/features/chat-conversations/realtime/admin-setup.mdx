@@ -1,0 +1,226 @@
+---
+sidebar_position: 3
+title: "Admin Setup"
+---
+
+# Admin Setup
+
+Realtime Voice is configured from **Admin Settings > Audio > Realtime API**.
+
+The current implementation is built around **OpenAI Realtime**.
+
+## Enable Realtime
+
+To enable realtime:
+
+1. Open **Admin Settings > Audio**.
+2. In **Realtime API**, set the provider to **OpenAI Realtime**.
+3. Enter:
+   - API base URL
+   - API key
+4. Optionally restrict the allowed realtime models.
+
+Realtime is considered enabled when:
+
+- the realtime engine is set to `openai`
+- a realtime API key is configured
+
+## Provider Configuration
+
+Admin settings include:
+
+- `Provider`
+- `API Base URL`
+- `API Key`
+- `Model IDs`
+
+### Model Whitelist Behavior
+
+`Model IDs` works as an optional whitelist.
+
+- If the list is empty, Open WebUI auto-detects realtime-capable models from the provider and merges them into the available model set dynamically.
+- If the list is populated, only matching realtime model IDs are marked/selectable as realtime.
+
+Auto-detection uses the configured **Realtime API Base URL** and **Realtime API Key**, not the standard OpenAI connection settings.
+
+In the current implementation, Open WebUI fetches `${AUDIO_RT_API_BASE_URL}/models` and treats model IDs containing `realtime` as realtime-capable. If an OpenAI-compatible provider does not expose realtime models through `/models`, or uses non-standard model IDs, enter **Model IDs** manually instead of relying on auto-detection.
+
+Open WebUI also enriches model capability data so the frontend can tell which models are realtime-capable and which voices they support.
+
+## Admin Defaults
+
+The Realtime API section also defines admin defaults for new sessions:
+
+- `Voice`
+- `Speech Speed`
+- `Voice Activity Detection (VAD)`
+- semantic/server VAD tuning
+- `Noise Reduction`
+- `Auto-respond after speech`
+- `Allow speech interruption`
+- `Transcription Model`
+- `Transcription Prompt`
+- `Max Output Tokens`
+- `Truncation Strategy`
+- `Retain After Truncation`
+- `Conversation Token Limit`
+
+These values are used as the baseline session config for realtime calls.
+
+For transcription prompts, the best format depends on the transcription model:
+
+- `gpt-4o-transcribe` and `gpt-4o-mini-transcribe` work well with short free-text guidance
+- `whisper-1` works best with keyword-style hints and expected terms
+
+## User Settings Precedence
+
+User-facing realtime settings live in **Settings > Audio > Realtime Voice**.
+
+The precedence model is:
+
+1. Admin realtime settings define the baseline.
+2. User realtime settings override supported user-tunable fields.
+3. Unsupported saved user values are ignored and the admin default remains in effect.
+
+Important exception:
+
+- `Auto-unmute microphone when call is ready` defaults to **off** for users.
+
+The user-facing Realtime Voice section only appears when realtime is enabled by the admin.
+
+## VAD Modes
+
+Admins can choose among:
+
+- `Smart (AI-powered)` → semantic VAD
+- `Standard (volume-based)` → server VAD
+- `Push to Talk`
+
+Relevant controls:
+
+- **Semantic VAD**
+  - `Response Eagerness`
+- **Server VAD**
+  - `Threshold`
+  - `Silence Duration (ms)`
+  - `Prefix Padding (ms)`
+- **General**
+  - `Auto-respond after speech`
+  - `Allow speech interruption`
+  - `Re-engage Timeout (ms)`
+
+## Session and Idle Behavior
+
+Realtime sessions expose two important idle-related controls:
+
+- `Session Idle Timeout (seconds)`
+- `Idle Call Check-in Interval (seconds)`
+
+And one hidden runtime prompt:
+
+- `Idle Call Check-in Prompt`
+
+The idle check-in prompt is used for transient spoken engagement during silent calls. It is not intended to be saved into chat history as a normal assistant message.
+
+The session idle timeout starts as soon as the call is ready, even if the user never speaks.
+
+## Truncation Strategy
+
+Realtime sessions expose three truncation modes:
+
+- `Auto (OpenAI default)`
+- `Retain After Truncation`
+- `Disabled`
+
+When `Retain After Truncation` is selected, two additional controls become relevant:
+
+- `Retain After Truncation`
+- `Conversation Token Limit`
+
+`Auto` and `Disabled` do not use those retention-specific fields.
+
+## Conversation Context
+
+Conversation continuity is configured under **Conversation Context**.
+
+Key settings:
+
+- `Enable Conversation Context`
+- `Recent Exchanges to Replay`
+- `Older Exchanges to Summarize`
+- `Older History Text Budget (Bytes)`
+- `Unanswered Last User Turn`
+- `Summarize Older History`
+- `Context Summary Prompt`
+- `Summary Target Size (characters)`
+
+### How Continuity Works
+
+Open WebUI can:
+
+- replay recent exchanges directly into the realtime session
+- summarize older history
+- discard or replay an unresolved last user turn
+
+The supported unresolved-turn policies are:
+
+- `discard`
+- `replay`
+
+### Summary Prompt Placeholders
+
+The summary prompt supports:
+
+- `{{MESSAGES}}`
+- `{{SUMMARY_MAX_SIZE}}`
+
+The summary path depends on the task model used by Open WebUI for background tasks.
+
+## Task Model Dependency
+
+If `TASK_MODEL_EXTERNAL` is not configured, background tasks may fail for realtime-only models.
+
+This includes features such as:
+
+- context summarization
+- titles
+- tags
+- follow-up prompts
+
+If your deployment expects those features, configure a task model in addition to the realtime provider.
+
+## Capability-Driven Voices
+
+Voice availability is determined from backend capability data, not just a single static frontend list.
+
+That means:
+
+- the visible voice union can depend on the set of configured realtime models
+- a saved voice can still be rejected later if the current model family does not support it
+
+## Troubleshooting
+
+### Realtime Voice settings are missing for users
+
+Verify that:
+
+- Realtime API is enabled in admin settings
+- a realtime API key is configured
+
+### No realtime models appear
+
+Check:
+
+- API base URL
+- API key
+- whether `Model IDs` is restricting the visible model set
+- whether the realtime provider exposes eligible model IDs through `${AUDIO_RT_API_BASE_URL}/models`
+- whether manual `Model IDs` are needed for a custom OpenAI-compatible provider
+
+### A visible saved voice still fails
+
+The selected model may not support that voice, even if it still appears as a preserved saved setting.
+
+### Context summary or follow-ups are missing
+
+Check whether `TASK_MODEL_EXTERNAL` is configured.

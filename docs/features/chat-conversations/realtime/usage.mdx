@@ -1,0 +1,206 @@
+---
+sidebar_position: 2
+title: "Usage"
+---
+
+# Using Realtime Voice
+
+Realtime Voice lets you talk to a realtime-capable model in a live session while keeping the conversation in the normal Open WebUI chat history.
+
+## Starting a Session
+
+You can start Realtime Voice in two ways:
+
+1. Press the standard voice button while a realtime-capable model is selected.
+2. Type and send a message while a realtime-capable model is selected.
+
+When typed send is used on a realtime-capable model, Open WebUI can auto-open the realtime overlay and start the live session before routing the turn through the provider.
+
+:::info Microphone Permission
+Even when you start by typing, opening the realtime overlay can trigger microphone setup and browser permission checks because the session connects immediately.
+:::
+
+On an empty chat, the input placeholder changes to:
+
+```text
+Press the voice button or type to start a realtime session
+```
+
+## Overlay States
+
+During a call, the realtime overlay can show states such as:
+
+- startup/context messages such as `Preparing voice session...`, `Loading conversation history...`, `Summarizing conversation context...`, or `Injecting context...`
+- `Thinking...`
+- `Listening...`
+- `Microphone muted`
+- `Hold to talk`
+- `Recording...`
+- `Tap to interrupt`
+- `Interrupting...`
+- `Reconnecting...`
+- `Connection failed`
+
+`Listening...`, `Hold to talk`, and `Microphone muted` are all valid “call is active” states. The session can already be connected even when the microphone is not yet listening.
+
+When terminal startup/runtime failures happen, the overlay uses a generic `Connection failed` headline and then shows the raw backend/provider error detail underneath when available.
+
+## User Settings
+
+Open **Settings > Audio > Realtime Voice** to configure personal defaults.
+
+Basic settings:
+
+- `Auto-unmute microphone when call is ready`
+- `Voice`
+- `Speech Speed`
+- `Voice Activity Detection (VAD)`
+
+Advanced settings:
+
+- `Noise Reduction`
+- `Auto-respond after speech`
+- `Allow speech interruption`
+- `Response Eagerness` for **Smart (AI-powered)** VAD
+- `Volume Threshold`, `Silence Duration (ms)`, and `Prefix Padding (ms)` for **Standard (volume-based)** VAD
+
+These controls live under the **Advanced Settings** toggle in the current Realtime Voice user settings UI.
+
+If **Auto-unmute microphone when call is ready** is off, the call can still start successfully, but the overlay will stay on `Microphone muted` until you unmute manually.
+
+## VAD Modes
+
+### Smart (AI-powered)
+
+Uses semantic turn detection and exposes **Response Eagerness**.
+
+Use this when you want the model to react more naturally to spoken turns instead of relying only on raw silence thresholds.
+
+### Standard (volume-based)
+
+Uses classic VAD controls:
+
+- threshold
+- silence duration
+- prefix padding
+
+Use this when you want deterministic volume-based speech detection.
+
+### Push to Talk
+
+Push to Talk disables passive listening. Hold the mic button to speak.
+
+Typical states:
+
+- idle: `Hold to talk`
+- while pressing: `Recording...`
+
+## What Appears in Chat
+
+When you speak, Realtime Voice creates visible placeholders immediately:
+
+- user: `*Transcribing...*`
+- assistant: `*Listening...*`
+
+As the turn completes, those placeholders are replaced with the real transcript and assistant response.
+
+If a turn produces no usable transcript, placeholder-only turns can disappear instead of leaving empty chat nodes behind.
+
+## Interrupting the Assistant
+
+Realtime Voice supports interruption. While the assistant is speaking, the overlay can show `Tap to interrupt`.
+
+When you tap to interrupt:
+
+- local playback stops immediately
+- the overlay can briefly show `Interrupting...`
+- the current provider response is cancelled
+- repeated taps are harmless and do not trigger repeated provider cancels for the same response
+
+If speech interruption is enabled:
+
+- speaking again can also interrupt the current response
+- the already streamed assistant text stays in the chat
+- a better final transcript for that same interrupted turn can still update the existing assistant message later
+
+## Push to Talk and Chat Updates
+
+Push to Talk uses the same underlying turn ownership model as voice activity detection. Spoken turns still create chat messages, transcripts, and assistant responses in the normal chat tree.
+
+## Tool Use During Realtime Voice
+
+Realtime Voice supports tool execution during a live session.
+
+When tools run:
+
+- tool cards appear in the assistant message
+- the overlay stays in a working or thinking state
+- a subtle processing cue can play during silent tool execution
+
+When real assistant output starts again, the working cue stops and the session continues normally.
+
+Tool results persist in the chat history using the same structured tool-output model that standard OWUI chat uses.
+
+## Notifications and Sounds
+
+During a live realtime voice session, assistant completions do **not** use the standard chat completion “boing” notification flow.
+
+That means:
+
+- no normal completion notification sound
+- no normal completion toast/browser notification for those live voice completions
+
+The assistant’s speech is treated as the user’s primary feedback signal instead.
+
+## Typed and Edited Messages
+
+Typed messages on realtime-capable models can start Realtime Voice automatically.
+
+Editing and re-sending a **user** message still follows OWUI’s branch model:
+
+- a new branch is created from the edited user message’s parent
+- the edited branch is sent as a new turn
+- on realtime-capable models, that branch can auto-open the realtime overlay and continue through the realtime runtime
+
+## Conversation Continuity
+
+Realtime Voice can continue the current chat rather than starting blank.
+
+Depending on admin configuration, Open WebUI can:
+
+- replay recent exchanges directly into the realtime session
+- summarize older history
+- discard or replay an unanswered last user turn
+
+This means a fresh call may begin by continuing an existing pending thread instead of waiting for your next spoken turn.
+
+## Idle Check-Ins and Timeout
+
+If a call starts and the user remains silent, the assistant can optionally perform a gentle spoken check-in after an idle interval.
+
+If the user remains inactive long enough, the session can end automatically and the realtime overlay closes.
+
+The session idle timeout starts once the call is ready, even if neither side has spoken yet. Only user activity resets it.
+
+Idle check-ins are transient runtime behavior. They are not added to chat history as normal assistant messages.
+
+## Troubleshooting
+
+### The call started, but the mic is not listening
+
+Check whether the overlay says `Microphone muted` or `Hold to talk`.
+
+- `Microphone muted` usually means the call is ready, but the mic is still muted.
+- `Hold to talk` means Push to Talk is active and you must hold the mic button to speak.
+
+### The provider rejected my voice selection
+
+Realtime setup errors surface the raw provider message when possible. If a voice is visible in a saved setting but rejected at startup, the current model likely does not support it.
+
+### I spoke, then the placeholder disappeared
+
+Empty or noise-only turns may be pruned when no usable transcript is produced.
+
+### I edited a message and got a branch
+
+That is expected. Edited user-message sends create a new branch instead of overwriting the original conversation path in place.

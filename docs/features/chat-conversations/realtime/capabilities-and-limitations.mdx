@@ -1,0 +1,127 @@
+---
+sidebar_position: 4
+title: "Capabilities and Limitations"
+---
+
+# Capabilities and Limitations
+
+This page describes what Realtime Voice currently supports and where its boundaries are.
+
+## Supported Capabilities
+
+Realtime Voice currently supports:
+
+- spoken turns through a live realtime session
+- typed message handoff into the realtime runtime
+- interruption during assistant speech
+- immediate local playback stop when the user interrupts assistant speech
+- Push to Talk
+- tool execution during live voice calls
+- inline tool cards in chat
+- persisted structured tool output in chat history
+- context replay and optional history summarization
+- raw provider/backend error surfacing in the UI
+- separate admin and user realtime settings
+
+## Conversation Continuity Model
+
+Realtime continuity is rebuilt per session from the currently selected chat branch.
+
+That means:
+
+- recent exchanges can be replayed directly
+- older history can be summarized
+- unanswered last-user-turn behavior follows the configured policy
+
+It does **not** use one global summary buffer shared across chats.
+
+## Voice and Model Compatibility
+
+Voice and model compatibility is capability-driven.
+
+In practice:
+
+- which voices appear depends on the backend capability data for the configured realtime model set
+- some model families support more voices than others
+- a saved voice can still be rejected by the current model if it is no longer compatible
+
+Treat the backend capability response as the source of truth.
+
+## Typed Multimodal Continuity
+
+Realtime supports structured typed turns such as text plus image for the **current turn**.
+
+Later continuity is more limited:
+
+- text is preserved for summary/replay
+- image/file attachments remain in OWUI chat history
+- later realtime continuity is text-oriented rather than replaying raw image data back into the provider session
+
+## Tool Support
+
+Realtime uses OWUI’s existing tool-selection and tool-card infrastructure, but with a realtime-specific orchestration layer.
+
+Supported auth modes for realtime tool execution include:
+
+- `bearer`
+- `none`
+- `session`
+- `system_oauth`
+- `oauth_2.1`
+
+Tool cards and structured tool output persist in chat history. The provider receives textual tool result content, while richer artifacts such as files and embeds remain preserved in Open WebUI.
+
+## Audio and UX Boundaries
+
+Realtime Voice is intentionally different from standard chat:
+
+- assistant voice output replaces the normal completion-notification pattern
+- the normal chat completion “boing” is suppressed during a live realtime session
+- live tool execution uses visual working states and a subtle processing cue instead of standard completion notifications
+- tap-to-interrupt is response-scoped; repeated taps during the same interruption are ignored safely rather than re-cancelling the same response
+
+## Current Limitations
+
+### Provider-dependent behavior
+
+Realtime capability depends on the configured provider and model family. Not every realtime-capable model supports the same voices or settings.
+
+### Context follows the current branch
+
+Realtime bootstrap uses the active chat branch. If you switch branches before starting a call, the selected branch becomes the continuity source.
+
+### Unanswered-turn behavior is policy-driven
+
+If the last user turn is unresolved, the result depends on admin configuration:
+
+- `discard`
+- `replay`
+
+This can affect how a fresh call begins.
+
+### Tool failures can still come from upstream systems
+
+The realtime runtime now handles tool failures as structured failures instead of crashing the session, but the underlying cause may still be:
+
+- upstream credentials
+- tool server auth
+- provider restrictions
+
+### Realtime settings are narrower than admin config
+
+User settings expose the supported personal controls, but not every admin/runtime control is user-editable.
+
+### Typing on a realtime model is not “silent text mode”
+
+Sending a typed message on a realtime-capable model can open the realtime overlay and start the live realtime path.
+
+## Troubleshooting Checklist
+
+If something looks wrong, check:
+
+- whether realtime is enabled by the admin
+- whether the selected model is actually realtime-capable
+- whether the current voice is supported by that model
+- whether the current chat branch is the one you intended to continue
+- whether the unanswered-last-user-turn policy explains the startup behavior
+- whether the tool/server credentials are valid for the tool you asked the model to use

@@ -53,6 +53,11 @@ If an admin **disables** a feature globally, users **cannot** enable it for them
 
 This pattern repeats across many features — web search, image generation, direct connections, code interpreter, and more. The admin controls the **what's possible**, and users control the **what I want**.
 
+A good example is **Realtime Voice**:
+
+- the admin enables and configures the realtime provider, model list, context behavior, and defaults in **Admin Settings > Audio**
+- each user can then tune their own **Realtime Voice** preferences in **Settings > Audio**, such as voice, VAD mode, and whether the microphone should auto-unmute when a call becomes ready
+
 ## Quick Reference
 
 | | Admin Settings | User Settings |

@@ -29,6 +29,7 @@ Access detailed API documentation for different services provided by Open WebUI:
 
 - **Endpoint**: `GET /api/models`
 - **Description**: Fetches all models created or added via Open WebUI.
+- **Realtime Note**: When realtime is enabled, this endpoint also reflects realtime capability enrichment, including which models are marked as realtime-capable.
 - **Example**:
 
   ```bash
@@ -80,6 +81,25 @@ Access detailed API documentation for different services provided by Open WebUI:
       response = requests.post(url, headers=headers, json=data)
       return response.json()
   ```
+
+### 🎙️ Realtime Client Config
+
+- **Endpoint**: `GET /api/v1/audio/realtime/config`
+- **Description**: Returns the verified-user realtime client contract used by the frontend. This includes:
+  - whether realtime is enabled
+  - safe client-facing defaults
+  - realtime capability data such as supported voices and per-model voice compatibility
+
+This endpoint is intentionally narrower than the admin audio config surface. It is used to drive the user settings and runtime UI without exposing admin secrets or hidden operational prompts.
+
+### 📞 Realtime Session Negotiation
+
+- **Endpoint**: `POST /api/v1/audio/realtime/negotiate`
+- **Description**: Starts realtime SDP negotiation and session bootstrap for a realtime-capable model. The backend validates `chat.call` access, validates the live socket session, resolves system instructions and tools, mints a client secret, stores bootstrap state keyed by `call_id`, and proxies the provider SDP exchange.
+
+:::info
+This endpoint is only the HTTP bootstrap step. The live session continues over WebRTC plus Socket.IO-driven runtime events such as `realtime:start`, `realtime:stop`, `realtime:cancel`, and audio commit/clear events.
+:::
 
 ### 🔮 Anthropic Messages API
 

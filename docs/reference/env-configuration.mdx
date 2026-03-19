@@ -4191,6 +4191,262 @@ Note: If none of the specified languages are available and `en` was not in your 
 - Description: Configures a custom system prompt for voice mode interactions. Allows administrators to control how the AI responds in voice conversations (style, length, tone). Leave empty to use the default prompt optimized for voice conversations, or provide custom instructions to tailor the voice assistant's behavior.
 - Persistence: This environment variable is a `PersistentConfig` variable.
 
+### Realtime Voice (OpenAI Realtime)
+
+These variables configure the experimental OpenAI Realtime voice path used for live WebRTC conversations.
+
+#### `AUDIO_RT_ENGINE`
+
+- Type: `str`
+- Options:
+  - `""` (empty string) - Disable realtime voice
+  - `openai` - Enable OpenAI Realtime
+- Default: empty string (`""`)
+- Description: Enables or disables the realtime voice feature and selects the realtime provider.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_API_KEY`
+
+- Type: `str`
+- Default: empty string (`""`)
+- Description: API key used for OpenAI Realtime session negotiation and realtime model auto-detection.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_API_BASE_URL`
+
+- Type: `str`
+- Default: `https://api.openai.com/v1`
+- Description: Base URL for the OpenAI Realtime-compatible API.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_MODELS`
+
+- Type: `str` (comma-separated list)
+- Default: empty string (`""`)
+- Example: `AUDIO_RT_MODELS=gpt-realtime,custom-realtime-model`
+- Description: Optional whitelist of realtime model IDs. In environment configuration this is provided as a comma-separated string and parsed into an internal list. If empty, Open WebUI will auto-detect realtime-capable models from the realtime provider by fetching `${AUDIO_RT_API_BASE_URL}/models` with `AUDIO_RT_API_KEY` and selecting model IDs that contain `realtime`. If your provider does not expose compatible model IDs through `/models`, set this list manually.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_VOICE`
+
+- Type: `str`
+- Default: `marin`
+- Description: Default voice used for new realtime sessions.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_SPEED`
+
+- Type: `float`
+- Default: `1.0`
+- Description: Default speech speed for realtime voice output.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_VAD_TYPE`
+
+- Type: `str`
+- Options:
+  - `semantic_vad`
+  - `server_vad`
+  - `push_to_talk`
+- Default: `server_vad`
+- Description: Sets the default realtime turn-detection mode.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_SEMANTIC_VAD_EAGERNESS`
+
+- Type: `str`
+- Options:
+  - `auto`
+  - `low`
+  - `medium`
+  - `high`
+- Default: `auto`
+- Description: Controls response eagerness when semantic VAD is active.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_SERVER_VAD_THRESHOLD`
+
+- Type: `float`
+- Default: `0.5`
+- Description: Volume threshold used when server-side VAD is active.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_SERVER_VAD_SILENCE_DURATION_MS`
+
+- Type: `int`
+- Default: `500`
+- Description: Silence duration used by server-side VAD to detect the end of a turn.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_SERVER_VAD_PREFIX_PADDING_MS`
+
+- Type: `int`
+- Default: `300`
+- Description: Prefix padding added by server-side VAD before the detected start of speech.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_VAD_CREATE_RESPONSE`
+
+- Type: `bool`
+- Default: `True`
+- Description: When enabled, turn detection can automatically create a provider response after speech ends.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_VAD_INTERRUPT_RESPONSE`
+
+- Type: `bool`
+- Default: `True`
+- Description: Allows new user speech to interrupt an in-flight assistant response when supported by the active VAD mode.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_VAD_IDLE_TIMEOUT_MS`
+
+- Type: `str`
+- Default: empty string (`""`)
+- Description: Optional provider-side idle timeout for turn detection. This is separate from the local session idle timeout described below.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_TRANSCRIPTION_MODEL`
+
+- Type: `str`
+- Default: `gpt-4o-transcribe`
+- Description: Default transcription model used for realtime speech recognition.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_TRANSCRIPTION_PROMPT`
+
+- Type: `str`
+- Default: empty string (`""`)
+- Description: Optional transcription prompt applied to realtime speech recognition. GPT-4o transcribe models work well with short free-text guidance, while `whisper-1` works best with keyword-style hints.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_NOISE_REDUCTION`
+
+- Type: `str`
+- Options:
+  - `near_field`
+  - `far_field`
+  - `""` (disable noise reduction)
+- Default: `near_field`
+- Description: Default realtime noise reduction mode.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_MAX_RESPONSE_OUTPUT_TOKENS`
+
+- Type: `str`
+- Default: empty string (`""`)
+- Examples:
+  - `256`
+  - `-1`
+  - `inf`
+- Description: Optional maximum output token setting for realtime responses. Use an integer to cap output, or `-1` / `inf` to request the provider maximum when supported.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_TRUNCATION_STRATEGY`
+
+- Type: `str`
+- Options:
+  - `auto`
+  - `retention_ratio`
+  - `disabled`
+- Default: `auto`
+- Description: Chooses how provider-side input truncation is handled for realtime sessions.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_TRUNCATION_RETENTION_RATIO`
+
+- Type: `float`
+- Default: `0.8`
+- Description: Controls how much context is retained when realtime truncation occurs. This setting is only used when `AUDIO_RT_TRUNCATION_STRATEGY=retention_ratio`.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_TRUNCATION_TOKEN_LIMIT`
+
+- Type: `str`
+- Default: empty string (`""`)
+- Description: Optional token limit used when `AUDIO_RT_TRUNCATION_STRATEGY=retention_ratio`.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_CONTEXT_ENABLED`
+
+- Type: `bool`
+- Default: `False`
+- Description: Enables continuity injection for realtime sessions.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_CONTEXT_RECENT_EXCHANGES_LIMIT`
+
+- Type: `int`
+- Default: `10`
+- Description: Number of recent completed exchanges to replay directly into a realtime session.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_CONTEXT_MAX_HISTORY_EXCHANGES`
+
+- Type: `int`
+- Default: `40`
+- Description: Upper bound on how many exchanges are considered when building realtime continuity context.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_CONTEXT_MAX_HISTORY_BYTES`
+
+- Type: `int`
+- Default: `16000`
+- Description: Byte cap applied to the history window used for realtime continuity.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_CONTEXT_SUMMARIZE`
+
+- Type: `bool`
+- Default: `False`
+- Description: Enables summary generation for older history during realtime bootstrap.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_CONTEXT_UNANSWERED_LAST_USER_TURN`
+
+- Type: `str`
+- Options:
+  - `discard`
+  - `replay`
+- Default: `discard`
+- Description: Controls how an unresolved trailing user turn is handled when starting a realtime session.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_CONTEXT_SUMMARY_PROMPT`
+
+- Type: `str`
+- Default: empty string (`""`)
+- Description: Optional override for the realtime context summary prompt. When empty, Open WebUI uses the built-in default summary template.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_CONTEXT_SUMMARY_MAX_SIZE`
+
+- Type: `int`
+- Default: `2000`
+- Description: Target maximum size for generated realtime history summaries.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_SESSION_TIMEOUT`
+
+- Type: `int`
+- Default: `180`
+- Description: Ends a realtime call after this many seconds of user inactivity. The timer starts when the call becomes ready, even if the user never speaks.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_IDLE_CALL_CHECKIN_INTERVAL`
+
+- Type: `int`
+- Default: `45`
+- Description: How long to wait after the call becomes quiet before a transient idle call check-in. Set to `0` to disable check-ins.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `AUDIO_RT_IDLE_CALL_CHECKIN_PROMPT`
+
+- Type: `str`
+- Default: the built-in realtime idle check-in prompt
+- Description: Prompt used for transient idle call check-ins. This spoken behavior is not persisted as a normal chat turn.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
 ### OpenAI Text-to-Speech
 
 #### `AUDIO_TTS_OPENAI_API_BASE_URL`
@@ -5703,6 +5959,50 @@ These settings control whether users can share workspace items **publicly**.
 - Type: `bool`
 - Default: `True`
 - Description: Enables or disables user / group permissions for the interface settings section in the Settings Modal.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+### Realtime Settings Permissions
+
+#### `USER_PERMISSIONS_REALTIME_SETTINGS_VOICE`
+
+- Type: `bool`
+- Default: `True`
+- Description: Controls access to user-facing realtime voice selection.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `USER_PERMISSIONS_REALTIME_SETTINGS_VAD`
+
+- Type: `bool`
+- Default: `True`
+- Description: Controls access to user-facing realtime VAD mode and related turn-detection settings.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `USER_PERMISSIONS_REALTIME_SETTINGS_NOISE_REDUCTION`
+
+- Type: `bool`
+- Default: `True`
+- Description: Controls access to realtime noise reduction settings in the user settings UI.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `USER_PERMISSIONS_REALTIME_SETTINGS_MAX_TOKENS`
+
+- Type: `bool`
+- Default: `True`
+- Description: Controls access to user-facing realtime max-token settings when exposed by the UI.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `USER_PERMISSIONS_REALTIME_SETTINGS_SPEED`
+
+- Type: `bool`
+- Default: `True`
+- Description: Controls access to realtime speech speed in the user settings UI.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
+#### `USER_PERMISSIONS_REALTIME_SETTINGS_CONTEXT`
+
+- Type: `bool`
+- Default: `False`
+- Description: Controls access to user-facing realtime context settings when those controls are exposed.
 - Persistence: This environment variable is a `PersistentConfig` variable.
 
 
