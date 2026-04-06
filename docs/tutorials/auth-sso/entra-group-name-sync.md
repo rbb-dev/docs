@@ -11,6 +11,12 @@ This tutorial is a community contribution and is not supported by the Open WebUI
 
 :::
 
+:::tip Automatic Group ID Resolution
+
+You can also resolve group GUIDs to display names automatically by setting `ENABLE_OAUTH_GROUP_ID_RESOLUTION=true`. When enabled, Open WebUI uses the Microsoft Graph API at login time to translate Group IDs into their display names. This works with all group types and requires no additional Azure-side configuration beyond the OAuth scope already configured for sign-in. See [OAuth Group Management](/features/authentication-access/auth/sso#oauth-group-management) for details.
+
+:::
+
 By default, when you configure Microsoft Entra ID OAuth and automatic group creation with Open WebUI, security groups are synced using their **Group IDs (GUIDs)** rather than human-readable group names. This is a Microsoft limitation where the ID token doesn't include group display names by default.
 
 This tutorial explains how to configure Microsoft Entra ID to return group **names** instead of IDs, enabling a much better user experience when working with groups in Open WebUI.

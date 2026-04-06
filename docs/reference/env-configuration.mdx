@@ -5185,6 +5185,13 @@ If `OAUTH_PICTURE_CLAIM` is set to `''` (empty string), then the OAuth picture c
 - Description: When enabled, groups from OAuth claims that don't exist in Open WebUI will be automatically created.
 - Persistence: This environment variable is a `PersistentConfig` variable.
 
+#### `ENABLE_OAUTH_GROUP_ID_RESOLUTION`
+
+- Type: `bool`
+- Default: `False`
+- Description: When enabled, UUID-shaped group claim values (e.g., from Microsoft Entra ID configured with "Group ID" as the groups claim source) are automatically resolved to human-readable display names using the identity provider's API before group matching occurs. Currently supports Microsoft (via the Graph API `/me/transitiveMemberOf` endpoint). Requires `ENABLE_OAUTH_GROUP_MANAGEMENT` to be enabled. Unresolvable IDs are left unchanged as a fallback.
+- Persistence: This environment variable is a `PersistentConfig` variable.
+
 #### `OAUTH_GROUP_DEFAULT_SHARE`
 
 - Type: `str`
